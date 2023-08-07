@@ -24,7 +24,7 @@ namespace eng {
          */
         gameController()= default;
         bool init() {
-            std::ofstream saveFile;
+            std::ofstream *saveFile = new std::ofstream;
             std::cout << "Enter your name (Must be perfect to save correctly)" << " :";
             std::cin
                     >> this->plyName;                                                //This must be changed to allow save imp.
