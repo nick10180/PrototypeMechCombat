@@ -14,12 +14,15 @@ namespace eng {
 
     class gameController {
         const static int MAPSIZE = 128;
+        const static int VIEWPORTX = 80;
+        const static int VIEWPORTY = 20;
         std::string saveLoc = "saves/";
         std::string plyName;
         int turnCount = 0;
         int mapmap[MAPSIZE][MAPSIZE];
+        int viewOffsetX =0, viewOffsetY =0;
         //Seed random number generator with true random value
-        std::random_device rd;
+        //std::random_device rd;
 
         std::knuth_b genB;
         //std::cout << "\nRandom Number: " << genB() << std::endl;
@@ -54,30 +57,34 @@ namespace eng {
         }
 
         bool loop(){
-        //IF there is no savegame, we can generate this level
-            std::ofstream *saveFile = new std::ofstream;
-            generateMap(genB);
-            saveFile->open(plyName, std::ios::app);     //Open in append mode
-            //Save the map to next line of file
-            if(saveFile->is_open()) {
-                for (int i = 0; i < MAPSIZE; i++) {
-                    *saveFile << "\n";
-                    for (int j = 0; j < MAPSIZE; j++) {
-                        *saveFile << mapmap[i][j];
+            while(true) {
+                //IF there is no savegame, we can generate this level
+                std::ofstream *saveFile = new std::ofstream;
+                generateMap(genB);
+                saveFile->open(plyName, std::ios::app);     //Open in append mode
+                //Save the map to next line of file
+                if (saveFile->is_open()) {
+                    for (int i = 0; i < MAPSIZE; i++) {
+                        *saveFile << "\n";
+                        for (int j = 0; j < MAPSIZE; j++) {
+                            *saveFile << mapmap[i][j];
+                        }
                     }
                 }
-            }
-            //Draw the screen!!!!!!!!!
-            for (int i = 0; i < MAPSIZE; i++) {
-                for (int j = 0; j < MAPSIZE; j++) {
-                    std::cout << mapmap[i][j];
+                //Draw the screen!!!!!!!!!
+                for (int i = 0+viewOffsetY, j = 0; i < MAPSIZE; i++, j++) {
+                    for (int x = 0+viewOffsetX, y = 0 ; x < MAPSIZE; x++ , y++) {
+                        if (y > 80) break;
+                        std::cout << mapmap[i][x];
+                    }
+                    std::cout << "\n";
+                    if (j > 20) break;
                 }
-                std::cout << "\n";
-            }
-            std::cout <<"\n\n That's the map!";
-            getch();
+                std::cout << "\n\n That's the map!";
+                getch();
 
-            return 0;
+                return 0;
+            }
         }
 
 
@@ -93,8 +100,8 @@ namespace eng {
                     thisGen = genB() % 100;
                     if (thisGen > 85){
                         mapmap[i][j] = 0;       //Pit
-                    } else if (thisGen < 5){
-                        mapmap[i][j] = 999;     //Shop
+                    } else if (thisGen <= 1){
+                        mapmap[i][j] = 9;     //Shop
                     } else {
                         mapmap[i][j] = 1;       //Floor
                     }
