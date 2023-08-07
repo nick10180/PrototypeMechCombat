@@ -8,7 +8,7 @@ int main() {
     gameController game;
     if (!err_flag){
         game.init();
-        //game.loop();
+        game.loop();
         return 0;
     }
 }
