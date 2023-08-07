@@ -5,6 +5,7 @@
 #include <fstream>
 #include <random>
 #include <chrono>
+#include <conio.h>
 
 #ifndef PROTOTYPEMECHCOMBAT_ENGINE_H
 #define PROTOTYPEMECHCOMBAT_ENGINE_H
@@ -12,7 +13,7 @@ namespace eng {
     //Hereonin, player will be ply
 
     class gameController {
-        const static int MAPSIZE = 256;
+        const static int MAPSIZE = 128;
         std::string saveLoc = "saves/";
         std::string plyName;
         int turnCount = 0;
@@ -66,7 +67,16 @@ namespace eng {
                     }
                 }
             }
-            if (saveFile->is_open())
+            //Draw the screen!!!!!!!!!
+            for (int i = 0; i < MAPSIZE; i++) {
+                for (int j = 0; j < MAPSIZE; j++) {
+                    std::cout << mapmap[i][j];
+                }
+                std::cout << "\n";
+            }
+            std::cout <<"\n\n That's the map!";
+            getch();
+
             return 0;
         }
 
