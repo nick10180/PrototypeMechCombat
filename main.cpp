@@ -1,5 +1,6 @@
 #include <iostream>
 #include "engine.h"
+#include <system_error>
 
 
 int main() {
@@ -7,8 +8,14 @@ int main() {
     bool err_flag = false;
     eng::gameController game;
     if (!err_flag){
-        game.init();
-        game.loop();
+        try {
+            game.init();
+        }
+        catch (const std::system_error& error)
+        {
+            std::cout << "System Error!" << std::endl << "Error as follows: " << error.what();
+        }
+
         return 0;
     }
 }
