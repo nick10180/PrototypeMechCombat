@@ -6,10 +6,30 @@
 #include <random>
 #include <chrono>
 #include <conio.h>
+#include <vector>
 
 #ifndef PROTOTYPEMECHCOMBAT_ENGINE_H
 #define PROTOTYPEMECHCOMBAT_ENGINE_H
 namespace eng {
+
+    class errorClass{
+
+       struct error{
+            int errcode = 0; //0 implies no error
+            std::string errstring;
+        };
+
+       static std::vector<error*> errorstack;
+
+    public:
+        struct error *setError(int mycode, std::string mystring);
+
+        bool isError(){
+            if( errorstack.empty() ){ return true;}
+            else {return false;}
+        }
+
+    };
 
     class playerObj {
         std::string plyName;
@@ -17,32 +37,36 @@ namespace eng {
         struct playerPos {
             int x, y;
         };
-        playerPos curPos;
+        playerPos curpos;
+
+
+        std::vector<char>  actionBuffer;
+
+
 
     public:
         playerObj(int x, int y, const std::string& newName) {
-            curPos.x = 0;
-            curPos.y = 0;
+            curpos.x = 0;
+            curpos.y = 0;
             plyName = newName;
         }
 
-        int getX() {
-            return curPos.x;
-        }
-        int getY() {
-            return curPos.y;
-        }
+        int getX() { return curpos.x; }
+        int getY() { return curpos.y ;}
 
         // Getter method for plyName  (CHATGPT made these, using const is a good idea! I'm gonna start doing that...)
-        std::string getPlyName() const {
-            return plyName;
-        }
+        std::string getPlyName() const { return plyName; }
 
         // Setter method for plyName (But then chatgpt said this one too)
         //
-        void setPlyName(const std::string& newName) {
-            plyName = newName;
-        }
+        void setPlyName(const std::string& newName) {plyName = newName;}
+
+        void doAction(std::vector<char> *buff);
+
+        std::vector<char>* getActions();
+
+
+
     };
     //Hereonin, player will be ply
 
