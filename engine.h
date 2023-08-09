@@ -12,30 +12,58 @@
 namespace eng {
 
     class playerObj {
+        std::string plyName;
+
         struct playerPos {
             int x, y;
         };
         playerPos curPos;
 
     public:
-        playerObj() {
+        playerObj(int x, int y, const std::string& newName) {
             curPos.x = 0;
             curPos.y = 0;
+            plyName = newName;
         }
 
+        int getX() {
+            return curPos.x;
+        }
+        int getY() {
+            return curPos.y;
+        }
 
+        // Getter method for plyName  (CHATGPT made these, using const is a good idea! I'm gonna start doing that...)
+        std::string getPlyName() const {
+            return plyName;
+        }
+
+        // Setter method for plyName (But then chatgpt said this one too)
+        //
+        void setPlyName(const std::string& newName) {
+            plyName = newName;
+        }
     };
     //Hereonin, player will be ply
 
     class gameController {
+        std::string plyName;
         const static int MAPSIZE = 128;
+        /*
+         * We're gonna have to talk about the ATTRIBUTE stack.
+         * Each tile on the map has the ability to hold a certain number of max attributes, set here,
+         * Since plaintext is expensive on the space, these attributes will just be a god-dang number
+         * and a godforsaken ever-growing map of their meanings.
+         * Also, probably important to mention somewhere that mapmap[i][j][0] represents the type of tile
+         *
+         */
+        const static int ATTRIBUTES = 3;
         const static int VIEWPORTX = 80;
         const static int VIEWPORTY = 20;
         std::string saveLoc = "saves/";
-        std::string plyName;
+
         int turnCount = 0;
-        int mapmap[MAPSIZE][MAPSIZE];
-        int viewOffsetX = 0, viewOffsetY = 0;
+        int mapmap[MAPSIZE][MAPSIZE][ATTRIBUTES];
         //Seed random number generator with true random value
         //std::random_device rd;
 
@@ -51,98 +79,16 @@ namespace eng {
          * include 'new user' response
          */
         gameController() = default;
-
-        bool init() {
-            std::ifstream *saveFile = new std::ifstream;
-            std::cout << "Enter your name (Must be perfect to save correctly)" << " :";
-            std::cin
-                    >> this->plyName;                                                //This must be changed to allow save imp.
-            saveLoc.append(plyName.append(".txt"));
-            saveFile->open(saveLoc);                              //Open the playername.txt file
-
-            std::cout << "Generating world..." << std::endl;
-            saveFile->close();
-            this->turnCount = 0;
-            delete saveFile;
-            playerObj ply;
-            loop(ply);
-            return true;
-        }
+        //Init function to tidy up the space
+        bool init();
+        //Main game loop
+        bool loop(playerObj ply);
+        //Map generator, directly sets the mapstate in mapmap
+        void generateMap(std::knuth_b genB);
+        //Screen Updater
+        void updateScreen(playerObj ply);
 
 
-        bool loop(playerObj ply) {
-            while (true) {
-                //IF there is no savegame, we can generate this level
-                std::ofstream *saveFile = new std::ofstream;
-
-                generateMap(genB);
-                saveFile->open(plyName, std::ios::app);     //Open in append mode
-
-                if (!saveFile->is_open()) {
-                    std::cout << "\n\nFailed to open save file! Maybe your directory is write protected?";
-                    return 1;
-                }
-                //Save the map to next line of file
-                if (saveFile->is_open()) {
-                    for (int i = 0; i < MAPSIZE; i++) {
-                        *saveFile << "\n";
-                        for (int j = 0; j < MAPSIZE; j++) {
-                            *saveFile << mapmap[i][j];
-                        }
-                    }
-                }
-                updateScreen();
-                //Draw the screen!!!!!!!!!
-
-                std::cout << "\n";
-
-                std::cout << "\n\n That's the map!";
-                getch();
-
-
-                delete saveFile;
-                return 0;
-            }
-        }
-
-        void updateScreen() {
-            for (int i = 0 + viewOffsetY, y = 0; i < MAPSIZE; i++, y++) {
-                for (int j = 0 + viewOffsetX, x = 0; x < MAPSIZE; j++, x++) {
-                    if (x > VIEWPORTX) break;
-                    switch (mapmap[i][j]) {
-                        case 1:
-                            std::cout << ".";           //Floor
-                            break;
-                        case 9:
-                            std::cout << "$";           //Shop
-                            break;
-                        case 0:
-                            std::cout << "P";           //Pit
-                    }
-                }
-                if (y > VIEWPORTY) break;
-            }
-        }
-
-        void generateMap(std::knuth_b genB) {
-            uint_fast32_t thisGen;
-            //I have immediately written something that needs to be refactored.
-            /*
-             ********************Refactor this function
-             */
-            for (int i = 0; i < MAPSIZE; i++) {
-                for (int j = 0; j < MAPSIZE; j++) {
-                    thisGen = genB() % 100;
-                    if (thisGen > 85) {
-                        mapmap[i][j] = 0;       //Pit
-                    } else if (thisGen <= 1) {
-                        mapmap[i][j] = 9;     //Shop
-                    } else {
-                        mapmap[i][j] = 1;       //Floor
-                    }
-                }
-            }
-        }
     };
 
 
