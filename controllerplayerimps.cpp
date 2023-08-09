@@ -27,7 +27,7 @@ bool eng::gameController::init() {
     return true;
 }
 
-void eng::gameController::generateMap(std::knuth_b genB) {
+void eng::gameController::generateMap(std::knuth_b mygen) {
     uint_fast32_t thisGen;
     //I have immediately written something that needs to be refactored.
     /*
@@ -35,7 +35,7 @@ void eng::gameController::generateMap(std::knuth_b genB) {
      */
     for (int i = 0; i < MAPSIZE; i++) {
         for (int j = 0; j < MAPSIZE; j++) {
-            thisGen = genB() % 100;
+            thisGen = mygen() % 100;
             if (thisGen > 85) {
                 mapmap[i][j][0] = 0;       //Pit
             } else if (thisGen <= 1) {
@@ -81,27 +81,33 @@ void eng::gameController::updateScreen(eng::playerObj ply) {
 bool eng::gameController::loop(eng::playerObj ply) {
     while (true) {
         //IF there is no savegame, we can generate this level
-        std::ofstream *saveFile = new std::ofstream;
+        auto *saveFile = new std::ofstream;
 
         generateMap(genB);
         saveFile->open(plyName, std::ios::app);     //Open in append mode
 
         if (!saveFile->is_open()) {
             std::cout << "\n\nFailed to open save file! Maybe your directory is write protected?";
-            return 1;
+            return true;
         }
         //Save the map to next line of file
         if (saveFile->is_open()) {
             for (int i = 0; i < MAPSIZE; i++) {
                 *saveFile << "\n";
                 for (int j = 0; j < MAPSIZE; j++) {
-                    *saveFile << mapmap[i][j];
+                    *saveFile << mapmap[i][j][0];
                 }
             }
         }
+        /*
+         * Right here is where we would update the game accounting to the players actions,
+         * if he had any!
+         */
+        ply.doAction(ply.getActions());
+
         updateScreen(ply);
 
-        //Draw the screen!!!!!!!!!
+        ply;
 
         std::cout << "\n";
         std::cout << ply.getPlyName();
@@ -114,3 +120,21 @@ bool eng::gameController::loop(eng::playerObj ply) {
         return 0;
     }
 }
+
+
+void eng::playerObj::doAction(std::vector<char> *buff) {
+    //This is where we would do the action
+    return;
+}
+
+eng::errorClass::error* eng::errorClass::setError(int mycode, std::string mystring) {
+    auto* errp = new eng::errorClass::error;
+
+    errp->errcode = mycode;
+    errp->errstring = mystring;
+    //Push the pointer to the error onto the stack.
+    errorstack.push_back(errp);
+
+    return errp;
+}
+
