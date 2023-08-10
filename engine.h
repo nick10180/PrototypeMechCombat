@@ -12,59 +12,62 @@
 #define PROTOTYPEMECHCOMBAT_ENGINE_H
 namespace eng {
 
-    class errorClass{
+    class errorClass {
 
-       struct error{
+        struct error {
             int errcode = 0; //0 implies no error
             std::string errstring;
         };
 
-       static std::vector<error*> errorstack;
+        static std::vector<error *> errorstack;
 
     public:
-        struct error *setError(int mycode, std::string mystring);
+        static error setError(int mycode, std::string &mystring, std::vector<error*>* errstack = &errorstack);
 
-        bool isError(){
-            if( errorstack.empty() ){ return true;}
-            else {return false;}
+        bool isError() {
+            if (errorstack.empty()) { return true; }
+            else { return false; }
         }
 
     };
 
     class playerObj {
         std::string plyName;
+        bool inRoom = false;
 
         struct playerPos {
-            int x, y;
+            int x = 40, y = 10;
         };
         playerPos curpos;
 
 
-        std::vector<char>  actionBuffer;
-
+        std::vector<char> actionBuffer;
 
 
     public:
-        playerObj(int x, int y, const std::string& newName) {
+        playerObj(int x, int y, const std::string &newName) {
             curpos.x = 0;
             curpos.y = 0;
             plyName = newName;
         }
 
         int getX() { return curpos.x; }
-        int getY() { return curpos.y ;}
+
+        int getY() { return curpos.y; }
 
         // Getter method for plyName  (CHATGPT made these, using const is a good idea! I'm gonna start doing that...)
         std::string getPlyName() const { return plyName; }
 
         // Setter method for plyName (But then chatgpt said this one too)
         //
-        void setPlyName(const std::string& newName) {plyName = newName;}
+        void setPlyName(const std::string &newName) { plyName = newName; }
 
-        void doAction(std::vector<char> *buff);
+        //Returns true when player in room
+        bool isInRoom() { return inRoom; }
 
-        std::vector<char>* getActions();
+        void doAction(std::vector<char>*);
 
+        std::vector<char> *getActions();
 
 
     };
@@ -103,12 +106,16 @@ namespace eng {
          * include 'new user' response
          */
         gameController() = default;
+
         //Init function to tidy up the space
         bool init();
+
         //Main game loop
         bool loop(playerObj ply);
+
         //Map generator, directly sets the mapstate in mapmap
         void generateMap(std::knuth_b genB);
+
         //Screen Updater
         void updateScreen(playerObj ply);
 
@@ -117,9 +124,5 @@ namespace eng {
 
 
 }
-
-
-
-
 
 #endif //PROTOTYPEMECHCOMBAT_ENGINE_H

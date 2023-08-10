@@ -3,10 +3,12 @@
 //
 #include "engine.h"
 #include <iostream>
+#include <utility>
+
 
 bool eng::gameController::init() {
     //Creating save file pointer
-    std::ifstream *saveFile = new std::ifstream;
+    auto *saveFile = new std::ifstream;
     std::cout << "Enter your name (Must be perfect to save correctly)" << " :";
     std::cin
             >> plyName;                                                //This must be changed to allow save imp.
@@ -51,30 +53,32 @@ void eng::gameController::generateMap(std::knuth_b mygen) {
 void eng::gameController::updateScreen(eng::playerObj ply) {
     //Already ran into the limitation of the viewporting, since the PC can reach 0,0 there's a bunch of nonsense
     //Happening on the screen.
-    for (int i = ply.getY() - 10, y = 0; i < MAPSIZE; i++, y++) {
-        for (int j = ply.getX() - 40, x = 0; x < MAPSIZE; j++, x++) {
-            if (x > VIEWPORTX) break;
+    //Going with the easy solution for now, (40, 10) is the new (0,0)
+    if (!ply.isInRoom()) {
+        for (int i = ply.getY() - 10, y = 0; i < MAPSIZE; i++, y++) {
+            for (int j = ply.getX() - 40, x = 0; x < MAPSIZE; j++, x++) {
+                if (x > VIEWPORTX) {break;}
+                //Draw the PC if the current tile is the PC's tile.
+                if (i == ply.getY() && j == ply.getX()) {
+                    std::cout << "@";
+                    continue;
+                }
 
-            //Draw the PC if the current tile is the PC's tile.
-            if (i == ply.getY() && j == ply.getX()) {
-                std::cout << "@";
-                continue;
+                switch (mapmap[i][j][0]) {
+                    case 1:
+                        std::cout << ".";           //Floor
+                        break;
+                    case 9:
+                        std::cout << "$";           //Shop
+                        break;
+                    case 0:
+                        std::cout << "P";           //Pit
+                        break;
+                }
+
             }
-
-            switch (mapmap[i][j][0]) {
-                case 1:
-                    std::cout << ".";           //Floor
-                    break;
-                case 9:
-                    std::cout << "$";           //Shop
-                    break;
-                case 0:
-                    std::cout << "P";           //Pit
-                    break;
-            }
-
+            if (y > VIEWPORTY) break;
         }
-        if (y > VIEWPORTY) break;
     }
 }
 
@@ -103,7 +107,7 @@ bool eng::gameController::loop(eng::playerObj ply) {
          * Right here is where we would update the game accounting to the players actions,
          * if he had any!
          */
-        ply.doAction(ply.getActions());
+        //ply.doAction(ply.getActions());
 
         updateScreen(ply);
 
@@ -127,14 +131,14 @@ void eng::playerObj::doAction(std::vector<char> *buff) {
     return;
 }
 
-eng::errorClass::error* eng::errorClass::setError(int mycode, std::string mystring) {
-    auto* errp = new eng::errorClass::error;
+eng::errorClass::error eng::errorClass::setError(int mycode, std::string &mystring, std::vector<error*>* errstack) {
+    auto *errp = new eng::errorClass::error;
 
     errp->errcode = mycode;
     errp->errstring = mystring;
     //Push the pointer to the error onto the stack.
-    errorstack.push_back(errp);
+    errstack->push_back(errp);
 
-    return errp;
+    return *errp;
 }
 
