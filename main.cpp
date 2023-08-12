@@ -23,6 +23,7 @@ int main() {
                 std::cout << "Code " <<n.errcode << std::endl << n.errstring;
             }
         }
+        getch();
         return 0;
     }
 }
