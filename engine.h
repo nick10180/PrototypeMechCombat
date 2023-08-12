@@ -14,19 +14,24 @@ namespace eng {
 
     class errorClass {
 
+
         struct error {
             int errcode = 0; //0 implies no error
             std::string errstring;
         };
 
-        static std::vector<error *> errorstack;
+      std::vector<error> errorstack;
 
     public:
-        static error setError(int mycode, std::string &mystring, std::vector<error*>* errstack = &errorstack);
+        errorClass();
+
+        static void setError(int mycode, std::string &mystring, std::vector<error> *errstack);
+
+        std::vector<error> &getErrorstack();
 
         bool isError() {
-            if (errorstack.empty()) { return true; }
-            else { return false; }
+            if (errorstack.empty()) { return false; }
+            else { return true; }
         }
 
     };
@@ -45,6 +50,7 @@ namespace eng {
 
 
     public:
+
         playerObj(int x, int y, const std::string &newName) {
             curpos.x = 0;
             curpos.y = 0;
@@ -108,16 +114,16 @@ namespace eng {
         gameController() = default;
 
         //Init function to tidy up the space
-        bool init();
+        errorClass* init();
 
         //Main game loop
-        bool loop(playerObj ply);
+        errorClass* loop(playerObj ply, errorClass *errors);
 
         //Map generator, directly sets the mapstate in mapmap
         void generateMap(std::knuth_b genB);
 
         //Screen Updater
-        void updateScreen(playerObj ply);
+        void updateScreen(playerObj *ply);
 
 
     };
