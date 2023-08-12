@@ -6,27 +6,27 @@
 #include <utility>
 
 
-bool eng::gameController::init() {
+eng::errorClass* eng::gameController::init() {
     //Creating save file pointer
-    auto *saveFile = new std::ifstream;
+    auto *savefile = new std::ifstream;
+    auto *errors = new eng::errorClass;
     std::cout << "Enter your name (Must be perfect to save correctly)" << " :";
-    std::cin
-            >> plyName;                                                //This must be changed to allow save imp.
+    std::cin >> plyName;                                                //This must be changed to allow save imp.
 
     //Create the player object before we mess with the name
     playerObj ply(0, 0, plyName);
 
     //Turn plyName into a full path
     saveLoc.append(plyName.append(".txt"));
-    //saveFile->open(saveLoc);                              //Open the playername.txt file
+    //savefile->open(saveLoc);                              //Open the playername.txt file
 
     std::cout << "Generating world..." << std::endl;
-    saveFile->close();
+    savefile->close();
     this->turnCount = 0;
-    delete saveFile;
+    delete savefile;
 
-    loop(ply);
-    return true;
+    loop(ply, errors);
+    return errors;
 }
 
 void eng::gameController::generateMap(std::knuth_b mygen) {
@@ -50,16 +50,16 @@ void eng::gameController::generateMap(std::knuth_b mygen) {
 }
 
 //This sort of imp. might be cursed.
-void eng::gameController::updateScreen(eng::playerObj ply) {
+void eng::gameController::updateScreen(eng::playerObj *ply) {
     //Already ran into the limitation of the viewporting, since the PC can reach 0,0 there's a bunch of nonsense
     //Happening on the screen.
     //Going with the easy solution for now, (40, 10) is the new (0,0)
-    if (!ply.isInRoom()) {
-        for (int i = ply.getY() - 10, y = 0; i < MAPSIZE; i++, y++) {
-            for (int j = ply.getX() - 40, x = 0; x < MAPSIZE; j++, x++) {
+    if (!ply->isInRoom()) {
+        for (int i = ply->getY() - 10, y = 0; i < MAPSIZE; i++, y++) {
+            for (int j = ply->getX() - 40, x = 0; x < MAPSIZE; j++, x++) {
                 if (x > VIEWPORTX) {break;}
                 //Draw the PC if the current tile is the PC's tile.
-                if (i == ply.getY() && j == ply.getX()) {
+                if (i == ply->getY() && j == ply->getX()) {
                     std::cout << "@";
                     continue;
                 }
@@ -82,24 +82,25 @@ void eng::gameController::updateScreen(eng::playerObj ply) {
     }
 }
 
-bool eng::gameController::loop(eng::playerObj ply) {
+eng::errorClass* eng::gameController::loop(eng::playerObj ply, errorClass *errors) {
     while (true) {
         //IF there is no savegame, we can generate this level
-        auto *saveFile = new std::ofstream;
+        auto *savefile = new std::ofstream;
 
         generateMap(genB);
-        saveFile->open(plyName, std::ios::app);     //Open in append mode
+        savefile->open(plyName, std::ios::app);     //Open in append mode
 
-        if (!saveFile->is_open()) {
-            std::cout << "\n\nFailed to open save file! Maybe your directory is write protected?";
-            return true;
+        if (!savefile->is_open()) {
+            std::string saveError = "Unable to Open save file";
+            eng::errorClass::setError(1, saveError, &errors->getErrorstack());
+            return errors;
         }
         //Save the map to next line of file
-        if (saveFile->is_open()) {
+        if (savefile->is_open()) {
             for (int i = 0; i < MAPSIZE; i++) {
-                *saveFile << "\n";
+                *savefile << "\n";
                 for (int j = 0; j < MAPSIZE; j++) {
-                    *saveFile << mapmap[i][j][0];
+                    *savefile << mapmap[i][j][0];
                 }
             }
         }
@@ -109,7 +110,7 @@ bool eng::gameController::loop(eng::playerObj ply) {
          */
         //ply.doAction(ply.getActions());
 
-        updateScreen(ply);
+        updateScreen(&ply);
 
         ply;
 
@@ -120,8 +121,8 @@ bool eng::gameController::loop(eng::playerObj ply) {
         getch();
 
 
-        delete saveFile;
-        return 0;
+        delete savefile;
+        return errors;
     }
 }
 
@@ -131,14 +132,21 @@ void eng::playerObj::doAction(std::vector<char> *buff) {
     return;
 }
 
-eng::errorClass::error eng::errorClass::setError(int mycode, std::string &mystring, std::vector<error*>* errstack) {
+void eng::errorClass::setError(int mycode, std::string &mystring, std::vector<error> *errstack) {
     auto *errp = new eng::errorClass::error;
 
     errp->errcode = mycode;
     errp->errstring = mystring;
     //Push the pointer to the error onto the stack.
-    errstack->push_back(errp);
+    errstack->push_back(*errp);
 
-    return *errp;
+    delete errp;
+}
+
+eng::errorClass::errorClass() {
+}
+
+std::vector<eng::errorClass::error> &eng::errorClass::getErrorstack() {
+    return errorstack;
 }
 
